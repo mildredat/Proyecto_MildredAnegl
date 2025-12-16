@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Importar/Exportar Datos - BioTech</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="navbar"></div>
+
+    <div class="tech-container">
+        <div class="tech-hero">
+            <h1><i class="fas fa-file-import"></i> Importación y Exportación de Datos</h1>
+            <p>Gestiona la transferencia de datos mediante archivos Excel y PDF</p>
+        </div>
+
+        <!-- Pestañas -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="openTab('import')">
+                <i class="fas fa-upload"></i> Importar Datos
+            </button>
+            <button class="tab-btn" onclick="openTab('export')">
+                <i class="fas fa-download"></i> Exportar Datos
+            </button>
+            <button class="tab-btn" onclick="openTab('templates')">
+                <i class="fas fa-file-alt"></i> Plantillas
+            </button>
+        </div>
+
+        <!-- Contenido de Importación -->
+        <div id="import-tab" class="tab-content active">
+            <div class="tech-card-grid">
+                <!-- Importar Usuarios -->
+                <div class="tech-card">
+                    <h3><i class="fas fa-users"></i> Importar Usuarios</h3>
+                    <p>Importa usuarios desde un archivo Excel</p>
+                    
+                    <div class="file-upload-area" id="usersUploadArea">
+                        <i class="fas fa-file-excel fa-3x mb-3" style="color: var(--tech-success);"></i>
+                        <p>Arrastra y suelta archivos Excel aquí</p>
+                        <p class="tech-text-secondary">o haz clic para seleccionar</p>
+                        <input type="file" id="usersFile" accept=".xlsx,.xls,.csv" style="display: none;">
+                    </div>
+                    
+                    <div id="usersPreview" style="display: none;"></div>
+                    
+                    <div class="tech-actions mt-3">
+                        <button class="tech-btn tech-btn-primary" onclick="importUsers()" disabled>
+                            <i class="fas fa-upload"></i> Importar Usuarios
+                        </button>
+                        <button class="tech-btn tech-btn-outline" onclick="downloadTemplate('users')">
+                            <i class="fas fa-download"></i> Plantilla
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Importar Estudios -->
+                <div class="tech-card">
+                    <h3><i class="fas fa-vials"></i> Importar Estudios</h3>
+                    <p>Importa estudios al catálogo desde Excel</p>
+                    
+                    <div class="file-upload-area" id="studiesUploadArea">
+                        <i class="fas fa-file-excel fa-3x mb-3" style="color: var(--tech-success);"></i>
+                        <p>Arrastra y suelta archivos Excel aquí</p>
+                        <p class="tech-text-secondary">o haz clic para seleccionar</p>
+                        <input type="file" id="studiesFile" accept=".xlsx,.xls,.csv" style="display: none;">
+                    </div>
+                    
+                    <div id="studiesPreview" style="display: none;"></div>
+                    
+                    <div class="tech-actions mt-3">
+                        <button class="tech-btn tech-btn-primary" onclick="importStudies()" disabled>
+                            <i class="fas fa-upload"></i> Importar Estudios
+                        </button>
+                        <button class="tech-btn tech-btn-outline" onclick="downloadTemplate('studies')">
+                            <i class="fas fa-download"></i> Plantilla
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Importar Órdenes -->
+                <div class="tech-card">
+                    <h3><i class="fas fa-file-medical"></i> Importar Órdenes</h3>
+                    <p>Importa órdenes de estudios desde Excel</p>
+                    
+                    <div class="file-upload-area" id="ordersUploadArea">
+                        <i class="fas fa-file-excel fa-3x mb-3" style="color: var(--tech-success);"></i>
+                        <p>Arrastra y suelta archivos Excel aquí</p>
+                        <p class="tech-text-secondary">o haz clic para seleccionar</p>
+                        <input type="file" id="ordersFile" accept=".xlsx,.xls,.csv" style="display: none;">
+                    </div>
+                    
+                    <div id="ordersPreview" style="display: none;"></div>
+                    
+                    <div class="tech-actions mt-3">
+                        <button class="tech-btn tech-btn-primary" onclick="importOrders()" disabled>
+                            <i class="fas fa-upload"></i> Importar Órdenes
+                        </button>
+                        <button class="tech-btn tech-btn-outline" onclick="downloadTemplate('orders')">
+                            <i class="fas fa-download"></i> Plantilla
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuración de Importación -->
+            <div class="tech-card mt-4">
+                <h3><i class="fas fa-cog"></i> Configuración de Importación</h3>
+                <div class="d-grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                    <div class="tech-form-group">
+                        <label class="tech-form-label">Modo de Importación</label>
+                        <select id="importMode" class="tech-form-select">
+                            <option value="add">Agregar nuevos registros</option>
+                            <option value="update">Actualizar registros existentes</option>
+                            <option value="replace">Reemplazar todos los registros</option>
+                        </select>
+                    </div>
+                    
+                    <div class="tech-form-group">
+                        <label class="tech-form-label">Tratamiento de Errores</label>
+                        <select id="errorHandling" class="tech-form-select">
+                            <option value="skip">Omitir filas con errores</option>
+                            <option value="stop">Detener al primer error</option>
+                            <option value="continue">Continuar y reportar errores</option>
+                        </select>
+                    </div>
+                    
+                    <div class="tech-form-group">
+                        <label class="tech-form-label">Formato de Fecha</label>
+                        <select id="dateFormat" class="tech-form-select">
+                            <option value="dd/mm/yyyy">DD/MM/YYYY</option>
+                            <option value="mm/dd/yyyy">MM/DD/YYYY</option>
+                            <option value="yyyy-mm-dd">YYYY-MM-DD</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenido de Exportación -->
+        <div id="export-tab" class="tab-content">
+            <div class="tech-card-grid">
+                <!-- Exportar Usuarios -->
+                <div class="tech-card">
+                    <h3><i class="fas fa-users"></i> Exportar Usuarios</h3>
+                    <p>Exporta la lista completa de usuarios a Excel</p>
+                    
+                    <div class="tech-form-group">
+                        <label class="tech-form-label">Formato de Exportación</label>
+                        <select id="usersExportFormat" class="tech-form-select">
+                            <option value="excel">Excel (.xlsx)</option>
+                            <option value="csv">CSV (.csv)</option>
+                            <option value="pdf">PDF (.pdf)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="tech-form-group">
+                        <label class="tech-form-label">Incluir Campos</label>
+                        <div class="tech-form-checkbox">
+                            <input type="checkbox" id="exportUsersId" checked> ID
+                        </div>
+                        <div class="tech-form-checkbox">
+                            <input type="checkbox" id="exportUsersEmail" checked> Usuario
+                        </div>
+                        <div class="tech-form-checkbox">
+                            <input type="checkbox" id="exportUsersRole" checked> Rol
+                        </div>
+                        <div class="tech-form-checkbox">
+                            <input type="checkbox" id="exportUsersDate"> Fecha Registro
+                        </div>
+                    </div>
+                    
+                    <div class="tech-actions mt-3">
+                        <button class="tech-btn tech-btn-accent" onclick="exportUsers()">
+                            <i class="fas fa-download"></i> Exportar Usuarios
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Exportar Órdenes -->
+                <div class="tech-card">
+                    <h3><i class="fas fa-file-medical"></i> Exportar Órdenes</h3>
+                    <p>Exporta órdenes de estudios con filtros personalizados</p>
+                    
+                    <div class="tech-form-group">
+                        <label class="tech-form-label">Rango de Fechas</label>
+                        <div class="d-flex gap-2">
+                            <input type="date" id="exportDateStart" class="tech-form-input">
+                            <input type="date" id="exportDateEnd" class="tech-form-input">
+                        </div>
+                    </div>
+                    
+                    <div class="tech-form-group">
+                        <label class="tech-form-label">Estado de Órdenes</label>
+                        <select id="exportOrderStatus" class="tech-form-select" multiple style="height: 100px;">
+                            <option value="Pendiente" selected>Pendiente</option>
+                            <option value="Tomada" selected>Tomada</option>
+                            <option value="Processando" selected>Procesando</option>
+                            <option value="Validado" selected>Validado</option>
+                            <option value="Cancelado">Cancelado</option>
+                        </select>
+                    </div>
+                    
+                    <div class="tech-actions mt-3">
+                        <button class="tech-btn tech-btn-accent" onclick="exportOrders()">
+                            <i class="fas fa-download"></i> Exportar Órdenes
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Exportar Catálogo -->
+                <div class="tech-card">
+                    <h3><i class="fas fa-book-medical"></i> Exportar Catálogo</h3>
+                    <p>Exporta el catálogo completo de estudios disponibles</p>
+                    
+                    <div class="tech-form-group">
+                        <label class="tech-form-label">Formato</label>
+                        <select id="catalogExportFormat" class="tech-form-select">
+                            <option value="excel">Excel (.xlsx)</option>
+                            <option value="csv">CSV (.csv)</option>
+                            <option value="json">JSON (.json)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="tech-form-group">
+                        <label class="tech-form-label">Categorías</label>
+                        <div id="catalogCategories">
+                            <!-- Se carga dinámicamente -->
+                        </div>
+                    </div>
+                    
+                    <div class="tech-actions mt-3">
+                        <button class="tech-btn tech-btn-accent" onclick="exportCatalog()">
+                            <i class="fas fa-download"></i> Exportar Catálogo
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reportes Avanzados -->
+            <div class="tech-card mt-4">
+                <h3><i class="fas fa-chart-bar"></i> Reportes Avanzados</h3>
+                <p>Genera reportes personalizados con análisis de datos</p>
+                
+                <div class="d-grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+                    <div class="tech-form-group">
+                        <label class="tech-form-label">Tipo de Reporte</label>
+                        <select id="reportType" class="tech-form-select">
+                            <option value="monthly">Mensual</option>
+                            <option value="quarterly">Trimestral</option>
+                            <option value="annual">Anual</option>
+                            <option value="custom">Personalizado</option>
+                        </select>
+                    </div>
+                    
+                    <div class="tech-form-group">
+                        <label class="tech-form-label">Incluir Gráficos</label>
+                        <div class="tech-form-checkbox">
+                            <input type="checkbox" id="includeCharts" checked> Gráficos de Barras
+                        </div>
+                        <div class="tech-form-checkbox">
+                            <input type="checkbox" id="includePie"> Gráficos de Pastel
+                        </div>
+                        <div class="tech-form-checkbox">
+                            <input type="checkbox" id="includeTrends"> Tendencias
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tech-actions mt-3">
+                    <button class="tech-btn tech-btn-primary" onclick="generateReport()">
+                        <i class="fas fa-file-pdf"></i> Generar Reporte PDF
+                    </button>
+                    <button class="tech-btn tech-btn-outline" onclick="generateExcelReport()">
+                        <i class="fas fa-file-excel"></i> Generar Reporte Excel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenido de Plantillas -->
+        <div id="templates-tab" class="tab-content">
+            <div class="tech-card-grid">
+                <!-- Plantilla de Usuarios -->
+                <div class="tech-card">
+                    <h3><i class="fas fa-users"></i> Plantilla de Usuarios</h3>
+                    <p>Estructura para importar usuarios al sistema</p>
+                    
+                    <div class="tech-table-container mt-3">
+                        <table class="tech-table">
+                            <thead>
+                                <tr>
+                                    <th>Campo</th>
+                                    <th>Tipo</th>
+                                    <th>Obligatorio</th>
+                                    <th>Ejemplo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>nombre_usuario</td>
+                                    <td>Texto</td>
+                                    <td>Sí</td>
+                                    <td>juan.perez</td>
+                                </tr>
+                                <tr>
+                                    <td>tipo_usuario</td>
+                                    <td>Texto</td>
+                                    <td>Sí</td>
+                                    <td>PACIENTE</td>
+                                </tr>
+                                <tr>
+                                    <td>password</td>
+                                    <td>Texto</td>
+                                    <td>No*</td>
+                                    <td>Contraseña123</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="tech-actions mt-3">
+                        <button class="tech-btn tech-btn-outline" onclick="downloadTemplate('users')">
+                            <i class="fas fa-download"></i> Descargar Plantilla
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Plantilla de Estudios -->
+                <div class="tech-card">
+                    <h3><i class="fas fa-vials"></i> Plantilla de Estudios</h3>
+                    <p>Estructura para importar estudios al catálogo</p>
+                    
+                    <div class="tech-table-container mt-3">
+                        <table class="tech-table">
+                            <thead>
+                                <tr>
+                                    <th>Campo</th>
+                                    <th>Tipo</th>
+                                    <th>Obligatorio</th>
+                                    <th>Ejemplo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>nombre_prueba</td>
+                                    <td>Texto</td>
+                                    <td>Sí</td>
+                                    <td>Glucosa en ayuno</td>
+                                </tr>
+                                <tr>
+                                    <td>categoria</td>
+                                    <td>Texto</td>
+                                    <td>Sí</td>
+                                    <td>Bioquímica</td>
+                                </tr>
+                                <tr>
+                                    <td>precio</td>
+                                    <td>Número</td>
+                                    <td>Sí</td>
+                                    <td>150.00</td>
+                                </tr>
+                                <tr>
+                                    <td>unidad_medida</td>
+                                    <td>Texto</td>
+                                    <td>No</td>
+                                    <td>mg/dL</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="tech-actions mt-3">
+                        <button class="tech-btn tech-btn-outline" onclick="downloadTemplate('studies')">
+                            <i class="fas fa-download"></i> Descargar Plantilla
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Plantilla de Órdenes -->
+                <div class="tech-card">
+                    <h3><i class="fas fa-file-medical"></i> Plantilla de Órdenes</h3>
+                    <p>Estructura para importar órdenes de estudios</p>
+                    
+                    <div class="tech-table-container mt-3">
+                        <table class="tech-table">
+                            <thead>
+                                <tr>
+                                    <th>Campo</th>
+                                    <th>Tipo</th>
+                                    <th>Obligatorio</th>
+                                    <th>Ejemplo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>id_paciente</td>
+                                    <td>Número</td>
+                                    <td>Sí</td>
+                                    <td>1</td>
+                                </tr>
+                                <tr>
+                                    <td>id_medico</td>
+                                    <td>Número</td>
+                                    <td>No</td>
+                                    <td>2</td>
+                                </tr>
+                                <tr>
+                                    <td>estudios</td>
+                                    <td>JSON</td>
+                                    <td>Sí</td>
+                                    <td>[{"id":1},{"id":2}]</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="tech-actions mt-3">
+                        <button class="tech-btn tech-btn-outline" onclick="downloadTemplate('orders')">
+                            <i class="fas fa-download"></i> Descargar Plantilla
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Instrucciones -->
+            <div class="tech-card mt-4">
+                <h3><i class="fas fa-info-circle"></i> Instrucciones de Uso</h3>
+                <ol class="mt-3" style="padding-left: 1.5rem; color: var(--tech-text-secondary);">
+                    <li>Descarga la plantilla correspondiente al tipo de datos que deseas importar</li>
+                    <li>Completa la plantilla con tus datos, respetando los formatos indicados</li>
+                    <li>Guarda el archivo en formato Excel (.xlsx o .xls) o CSV (.csv)</li>
+                    <li>Selecciona el archivo en la pestaña de importación correspondiente</li>
+                    <li>Configura las opciones de importación según tus necesidades</li>
+                    <li>Haz clic en "Importar" para procesar los datos</li>
+                    <li>Revisa el reporte de importación para verificar los resultados</li>
+                </ol>
+                
+                <div class="tech-alert alert-info mt-3">
+                    <i class="fas fa-lightbulb"></i>
+                    <div>
+                        <strong>Consejo:</strong> Antes de importar datos masivos, realiza una prueba con un archivo pequeño.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de Resultados -->
+        <div id="resultsPanel" class="tech-card mt-4" style="display: none;">
+            <h3><i class="fas fa-clipboard-check"></i> Resultados de Importación/Exportación</h3>
+            <div id="resultsContent">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Cargar navbar
+        async function loadNavbar() {
+            try {
+                const response = await fetch('/navbar.html');
+                document.getElementById('navbar').innerHTML = await response.text();
+            } catch (error) {
+                console.error('Error cargando navbar:', error);
+            }
+        }
+        
+        // Funciones de pestañas
+        function openTab(tabName) {
+            // Ocultar todas las pestañas
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Mostrar la pestaña seleccionada
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            event.currentTarget.classList.add('active');
+            
+            // Cargar datos específicos de la pestaña
+            if (tabName === 'templates') {
+                loadTemplateInfo();
+            }
+        }
+        
+        // Funciones de arrastrar y soltar
+        function setupDragAndDrop() {
+            const uploadAreas = ['usersUploadArea', 'studiesUploadArea', 'ordersUploadArea'];
+            
+            uploadAreas.forEach(areaId => {
+                const area = document.getElementById(areaId);
+                const fileInput = document.getElementById(areaId.replace('UploadArea', 'File'));
+                
+                // Click en el área
+                area.addEventListener('click', () => fileInput.click());
+                
+                // Cambio en el input de archivo
+                fileInput.addEventListener('change', (e) => handleFileSelect(e, areaId));
+                
+                // Drag and drop
+                area.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    area.classList.add('dragover');
+                });
+                
+                area.addEventListener('dragleave', () => {
+                    area.classList.remove('dragover');
+                });
+                
+                area.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    area.classList.remove('dragover');
+                    
+                    if (e.dataTransfer.files.length) {
+                        fileInput.files = e.dataTransfer.files;
+                        handleFileSelect({ target: fileInput }, areaId);
+                    }
+                });
+            });
+        }
+        
+        async function handleFileSelect(event, areaId) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const area = document.getElementById(areaId);
+            const previewId = areaId.replace('UploadArea', 'Preview');
+            const preview = document.getElementById(previewId);
+            const button = area.parentElement.querySelector('.tech-btn-primary');
+            
+            // Validar tipo de archivo
+            const validTypes = ['.xlsx', '.xls', '.csv', 'application/vnd.ms-excel', 
+                              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+            
+            if (!validTypes.some(type => file.name.toLowerCase().endsWith(type) || file.type === type)) {
+                alert('Por favor selecciona un archivo Excel (.xlsx, .xls, .csv)');
+                event.target.value = '';
+                return;
+            }
+            
+            // Mostrar información del archivo
+            preview.style.display = 'block';
+            preview.innerHTML = `
+                <div class="file-preview">
+                    <div class="file-preview-icon">
+                        <i class="fas fa-file-excel" style="color: var(--tech-success);"></i>
+                    </div>
+                    <div>
+                        <p><strong>${file.name}</strong></p>
+                        <p class="tech-text-secondary">${(file.size / 1024).toFixed(2)} KB</p>
+                    </div>
+                    <button class="tech-btn tech-btn-danger" onclick="removeFile('${areaId}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            // Habilitar botón de importación
+            if (button) button.disabled = false;
+            
+            // Previsualizar datos (opcional)
+            await previewFileData(file, previewId.replace('Preview', ''));
+        }
+        
+        function removeFile(areaId) {
+            const fileInput = document.getElementById(areaId.replace('UploadArea', 'File'));
+            const preview = document.getElementById(areaId.replace('UploadArea', 'Preview'));
+            const button = document.getElementById(areaId).parentElement.querySelector('.tech-btn-primary');
+            
+            fileInput.value = '';
+            preview.style.display = 'none';
+            preview.innerHTML = '';
+            
+            if (button) button.disabled = true;
+        }
+        
+        async function previewFileData(file, dataType) {
+            // Esta función podría leer el archivo Excel y mostrar una vista previa
+            // Por simplicidad, mostramos un mensaje genérico
+            console.log(`Previsualizando archivo ${file.name} para ${dataType}`);
+        }
+        
+        // Funciones de importación
+        async function importUsers() {
+            const fileInput = document.getElementById('usersFile');
+            if (!fileInput.files.length) return;
+            
+            await processImport(fileInput.files[0], 'users', 'Importando usuarios...');
+        }
+        
+        async function importStudies() {
+            const fileInput = document.getElementById('studiesFile');
+            if (!fileInput.files.length) return;
+            
+            await processImport(fileInput.files[0], 'studies', 'Importando estudios...');
+        }
+        
+        async function importOrders() {
+            const fileInput = document.getElementById('ordersFile');
+            if (!fileInput.files.length) return;
+            
+            await processImport(fileInput.files[0], 'orders', 'Importando órdenes...');
+        }
+        
+        async function processImport(file, type, message) {
+            showResultsPanel();
+            
+            const resultsContent = document.getElementById('resultsContent');
+            resultsContent.innerHTML = `
+                <div class="tech-text-center p-4">
+                    <div class="loading-spinner"></div>
+                    <p class="mt-3">${message}</p>
+                </div>
+            `;
+            
+            const formData = new FormData();
+            formData.append('archivo', file);
+            formData.append('tipo', type);
+            formData.append('modo', document.getElementById('importMode').value);
+            formData.append('manejo_errores', document.getElementById('errorHandling').value);
+            
+            try {
+                const response = await fetch('/api/importar-excel', {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    resultsContent.innerHTML = `
+                        <div class="tech-alert alert-success">
+                            <i class="fas fa-check-circle"></i>
+                            <div>
+                                <h4>Importación Exitosa</h4>
+                                <p>${result.message}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="dashboard-grid mt-3">
+                            <div class="stat-card">
+                                <div class="stat-value">${result.resultados?.exitosos || 0}</div>
+                                <div class="stat-label">Exitosos</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${result.resultados?.errores || 0}</div>
+                                <div class="stat-label">Errores</div>
+                            </div>
+                        </div>
+                        
+                        ${result.resultados?.errores > 0 ? `
+                            <div class="tech-table-container mt-3">
+                                <h4>Errores Detallados</h4>
+                                <table class="tech-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Fila</th>
+                                            <th>Error</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${result.resultados.detalles.filter(d => d.includes('Error')).map(detail => `
+                                            <tr>
+                                                <td>${detail.split(' ')[1]}</td>
+                                                <td>${detail.split(': ').slice(1).join(': ')}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ` : ''}
+                    `;
+                } else {
+                    resultsContent.innerHTML = `
+                        <div class="tech-alert alert-error">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <div>
+                                <h4>Error en la Importación</h4>
+                                <p>${result.error || 'Error desconocido'}</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error en importación:', error);
+                resultsContent.innerHTML = `
+                    <div class="tech-alert alert-error">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <div>
+                            <h4>Error de Conexión</h4>
+                            <p>No se pudo conectar con el servidor</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        // Funciones de exportación
+        async function exportUsers() {
+            const format = document.getElementById('usersExportFormat').value;
+            const includeId = document.getElementById('exportUsersId').checked;
+            const includeEmail = document.getElementById('exportUsersEmail').checked;
+            const includeRole = document.getElementById('exportUsersRole').checked;
+            const includeDate = document.getElementById('exportUsersDate').checked;
+            
+            let url = `/api/exportar-excel/usuarios?format=${format}`;
+            if (includeId) url += '&include_id=true';
+            if (includeEmail) url += '&include_email=true';
+            if (includeRole) url += '&include_role=true';
+            if (includeDate) url += '&include_date=true';
+            
+            window.open(url, '_blank');
+        }
+        
+        async function exportOrders() {
+            const dateStart = document.getElementById('exportDateStart').value;
+            const dateEnd = document.getElementById('exportDateEnd').value;
+            const statuses = Array.from(document.getElementById('exportOrderStatus').selectedOptions)
+                .map(opt => opt.value);
+            
+            let url = `/api/exportar-excel/ordenes?`;
+            if (dateStart) url += `&fecha_inicio=${dateStart}`;
+            if (dateEnd) url += `&fecha_fin=${dateEnd}`;
+            url += `&estados=${statuses.join(',')}`;
+            
+            window.open(url, '_blank');
+        }
+        
+        async function exportCatalog() {
+            const format = document.getElementById('catalogExportFormat').value;
+            const url = `/api/exportar-excel/catalogo?format=${format}`;
+            window.open(url, '_blank');
+        }
+        
+        // Funciones de plantillas
+        function loadTemplateInfo() {
+            // Cargar categorías de catálogo
+            loadCatalogCategories();
+        }
+        
+        async function loadCatalogCategories() {
+            try {
+                const response = await fetch('/api/catalogo-estudios/categorias', {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const categories = await response.json();
+                    const container = document.getElementById('catalogCategories');
+                    
+                    let html = '';
+                    categories.forEach(category => {
+                        html += `
+                            <div class="tech-form-checkbox">
+                                <input type="checkbox" id="cat_${category}" checked>
+                                <span>${category}</span>
+                            </div>
+                        `;
+                    });
+                    
+                    container.innerHTML = html;
+                }
+            } catch (error) {
+                console.error('Error cargando categorías:', error);
+            }
+        }
+        
+        function downloadTemplate(type) {
+            const templates = {
+                users: '/templates/plantilla_usuarios.xlsx',
+                studies: '/templates/plantilla_estudios.xlsx',
+                orders: '/templates/plantilla_ordenes.xlsx'
+            };
+            
+            if (templates[type]) {
+                window.open(templates[type], '_blank');
+            } else {
+                alert('Plantilla no disponible');
+            }
+        }
+        
+        // Funciones de reportes
+        async function generateReport() {
+            const reportType = document.getElementById('reportType').value;
+            const includeCharts = document.getElementById('includeCharts').checked;
+            const includePie = document.getElementById('includePie').checked;
+            const includeTrends = document.getElementById('includeTrends').checked;
+            
+            let url = `/api/generar-reporte?tipo=${reportType}&formato=pdf`;
+            if (includeCharts) url += '&graficos=true';
+            if (includePie) url += '&pastel=true';
+            if (includeTrends) url += '&tendencias=true';
+            
+            window.open(url, '_blank');
+        }
+        
+        async function generateExcelReport() {
+            const reportType = document.getElementById('reportType').value;
+            const url = `/api/generar-reporte?tipo=${reportType}&formato=excel`;
+            window.open(url, '_blank');
+        }
+        
+        // Utilidades
+        function showResultsPanel() {
+            document.getElementById('resultsPanel').style.display = 'block';
+            document.getElementById('resultsPanel').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Cargar todo al iniciar
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadNavbar();
+            setupDragAndDrop();
+        });
+    </script>
+
+    <style>
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--tech-border);
+        }
+        
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: var(--tech-text);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .tab-btn:hover {
+            color: var(--tech-accent-light);
+            background: rgba(6, 182, 212, 0.1);
+        }
+        
+        .tab-btn.active {
+            color: var(--tech-accent-light);
+            border-bottom-color: var(--tech-accent);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+    </style>
+</body>
+</html>
