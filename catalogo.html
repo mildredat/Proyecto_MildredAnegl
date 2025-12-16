@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo - BioTech</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div id="navbar"></div>
+
+    <div class="tech-container">
+        <div class="tech-hero">
+            <h1>📚 Catálogo de Estudios</h1>
+            <p>Consulta los estudios de laboratorio disponibles</p>
+        </div>
+
+        <div class="tech-card">
+            <h2>Estudios Disponibles</h2>
+            <div id="catalogList" class="tech-table-container">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Cargar navbar
+        async function loadNavbar() {
+            const response = await fetch('/navbar.html');
+            document.getElementById('navbar').innerHTML = await response.text();
+        }
+        
+        // Cargar catálogo
+        async function loadCatalog() {
+            try {
+                const response = await fetch('/api/catalogo-estudios', {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const studies = await response.json();
+                    displayCatalog(studies);
+                }
+            } catch (error) {
+                console.error('Error cargando catálogo:', error);
+            }
+        }
+        
+        function displayCatalog(studies) {
+            let tableHTML = `
+                <table class="tech-table">
+                    <thead>
+                        <tr>
+                            <th>Estudio</th>
+                            <th>Categoría</th>
+                            <th>Precio</th>
+                            <th>Unidad</th>
+                            <th>Valores de Referencia</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            studies.forEach(study => {
+                tableHTML += `
+                    <tr>
+                        <td><strong>${study.nombre_prueba}</strong></td>
+                        <td><span class="tech-badge">${study.categoria || 'General'}</span></td>
+                        <td>$${study.precio}</td>
+                        <td>${study.unidad_medida || 'N/A'}</td>
+                        <td><small>${study.valores_referencia || 'No especificado'}</small></td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += `
+                    </tbody>
+                </table>
+            `;
+            
+            document.getElementById('catalogList').innerHTML = tableHTML;
+        }
+        
+        // Cargar todo al iniciar
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadNavbar();
+            await loadCatalog();
+        });
+    </script>
+</body>
+</html>
