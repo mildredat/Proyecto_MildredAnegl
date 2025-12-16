@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Nueva Orden - BioTech</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div id="navbar"></div>
+    <div class="tech-container">
+        <div class="tech-card">
+            <h1>Nueva Orden (En desarrollo)</h1>
+            <p>Esta funcionalidad está en desarrollo.</p>
+            <a href="/ordenes.html" class="tech-btn tech-btn-primary">Volver a Órdenes</a>
+        </div>
+    </div>
+    <script>
+        fetch('/navbar.html').then(r => r.text()).then(html => {
+            document.getElementById('navbar').innerHTML = html;
+        });
+    </script>
+</body>
+</html>
