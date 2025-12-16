@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Biomédico - BioTech</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navbar dinámico -->
+    <div id="navbar"></div>
+
+    <div class="tech-container">
+        <!-- Hero Section con estadísticas -->
+        <div class="tech-hero">
+            <h1><i class="fas fa-dna"></i> SISTEMA BIOMÉDICO INTELIGENTE</h1>
+            <p>Gestión integral de pacientes, estudios de laboratorio y resultados médicos</p>
+            
+            <div class="tech-stats" id="quickStats">
+                <div class="tech-stat-item">
+                    <div class="tech-stat-value">0</div>
+                    <div class="tech-stat-label">Órdenes Activas</div>
+                </div>
+                <div class="tech-stat-item">
+                    <div class="tech-stat-value">0</div>
+                    <div class="tech-stat-label">Pacientes Registrados</div>
+                </div>
+                <div class="tech-stat-item">
+                    <div class="tech-stat-value">0</div>
+                    <div class="tech-stat-label">Estudios Disponibles</div>
+                </div>
+                <div class="tech-stat-item">
+                    <div class="tech-stat-value">0</div>
+                    <div class="tech-stat-label">Resultados Hoy</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información del usuario -->
+        <div class="tech-card fade-in">
+            <h3><i class="fas fa-user-circle"></i> Información de Sesión</h3>
+            <div id="userInfoContent" class="d-flex align-center gap-3">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+
+        <!-- Dashboard por rol -->
+        <div id="dashboardContent">
+            <!-- Contenido dinámico según rol -->
+        </div>
+
+        <!-- Panel de acciones rápidas -->
+        <div class="tech-card mt-4">
+            <h3><i class="fas fa-bolt"></i> Acciones Rápidas</h3>
+            <div class="tech-btn-group mt-3">
+                <button class="tech-btn tech-btn-primary" onclick="loadPage('nueva-orden.html')">
+                    <i class="fas fa-file-medical"></i> Nueva Orden
+                </button>
+                <button class="tech-btn tech-btn-accent" onclick="loadPage('catalogo.html')">
+                    <i class="fas fa-book-medical"></i> Catálogo de Estudios
+                </button>
+                <button class="tech-btn tech-btn-outline" onclick="loadPage('buscar-orden.html')">
+                    <i class="fas fa-search"></i> Buscar Orden
+                </button>
+                <button class="tech-btn tech-btn-outline" onclick="loadPage('importar.html')">
+                    <i class="fas fa-file-upload"></i> Importar Datos
+                </button>
+            </div>
+        </div>
+
+        <!-- Estadísticas del sistema -->
+        <div class="tech-card mt-4">
+            <h3><i class="fas fa-chart-line"></i> Estadísticas del Sistema</h3>
+            <div id="systemStats" class="dashboard-stats mt-3">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </div>
+
+        <!-- Últimas actividades -->
+        <div class="tech-card mt-4">
+            <h3><i class="fas fa-history"></i> Actividad Reciente</h3>
+            <div id="recentActivity" class="mt-3">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Cargar navbar
+        async function loadNavbar() {
+            try {
+                const response = await fetch('/navbar.html');
+                const html = await response.text();
+                document.getElementById('navbar').innerHTML = html;
+                
+                // Inicializar funcionalidad del navbar
+                initializeNavbar();
+                
+                // Verificar sesión y cargar datos
+                checkSession();
+            } catch (error) {
+                console.error('Error cargando navbar:', error);
+                document.getElementById('navbar').innerHTML = '<p>Error cargando navegación</p>';
+            }
+        }
+
+        // Verificar sesión y cargar información
+        async function checkSession() {
+            try {
+                const response = await fetch('/session-check', {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.loggedIn) {
+                        displayUserInfo(data.usuario);
+                        loadDashboardContent(data.usuario);
+                        loadQuickStats();
+                        loadSystemStats();
+                        loadRecentActivity();
+                    } else {
+                        window.location.href = '/login.html';
+                    }
+                } else {
+                    window.location.href = '/login.html';
+                }
+            } catch (error) {
+                console.error('Error verificando sesión:', error);
+                window.location.href = '/login.html';
+            }
+        }
+
+        function displayUserInfo(user) {
+            const userInfoContent = document.getElementById('userInfoContent');
+            
+            userInfoContent.innerHTML = `
+                <div class="d-flex align-center gap-3">
+                    <div class="tech-user-avatar">
+                        <i class="fas fa-user-md fa-2x"></i>
+                    </div>
+                    <div>
+                        <h4>${user.username}</h4>
+                        <p>Rol: <span class="tech-badge badge-${user.tipo}">${user.tipo}</span></p>
+                        <p class="tech-text-secondary">ID: ${user.id}</p>
+                    </div>
+                </div>
+                <div class="tech-actions">
+                    <button onclick="logout()" class="tech-btn tech-btn-danger">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                    </button>
+                </div>
+            `;
+        }
+
+        async function loadDashboardContent(user) {
+            const dashboardContent = document.getElementById('dashboardContent');
+            
+            let content = '';
+            
+            switch(user.tipo) {
+                case 'ADMIN':
+                    content = `
+                        <div class="tech-card-grid">
+                            <div class="tech-card">
+                                <h3><i class="fas fa-users-cog"></i> Administración</h3>
+                                <p>Gestiona usuarios, roles y configuraciones del sistema</p>
+                                <div class="tech-actions mt-3">
+                                    <button onclick="loadPage('admin.html')" class="tech-btn tech-btn-primary">
+                                        <i class="fas fa-cogs"></i> Panel de Control
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="tech-card">
+                                <h3><i class="fas fa-chart-bar"></i> Reportes</h3>
+                                <p>Genera reportes y analítica del sistema completo</p>
+                                <div class="tech-actions mt-3">
+                                    <button onclick="loadPage('reportes.html')" class="tech-btn tech-btn-accent">
+                                        <i class="fas fa-chart-pie"></i> Ver Reportes
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'MEDICO':
+                    content = `
+                        <div class="tech-card-grid">
+                            <div class="tech-card">
+                                <h3><i class="fas fa-user-injured"></i> Mis Pacientes</h3>
+                                <p>Gestiona los pacientes asignados y sus estudios</p>
+                                <div class="tech-actions mt-3">
+                                    <button onclick="loadPage('pacientes.html')" class="tech-btn tech-btn-primary">
+                                        <i class="fas fa-users"></i> Ver Pacientes
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="tech-card">
+                                <h3><i class="fas fa-file-prescription"></i> Órdenes Pendientes</h3>
+                                <p>Revisa y gestiona las órdenes de estudios pendientes</p>
+                                <div class="tech-actions mt-3">
+                                    <button onclick="loadPage('ordenes.html?estado=Pendiente')" class="tech-btn tech-btn-accent">
+                                        <i class="fas fa-clock"></i> Ver Pendientes
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'PACIENTE':
+                    content = `
+                        <div class="tech-card-grid">
+                            <div class="tech-card">
+                                <h3><i class="fas fa-file-medical-alt"></i> Mis Resultados</h3>
+                                <p>Consulta tus resultados de estudios de laboratorio</p>
+                                <div class="tech-actions mt-3">
+                                    <button onclick="loadPage('mis-resultados.html')" class="tech-btn tech-btn-primary">
+                                        <i class="fas fa-clipboard-check"></i> Ver Resultados
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="tech-card">
+                                <h3><i class="fas fa-calendar-check"></i> Próximas Citas</h3>
+                                <p>Revisa tus próximas citas y estudios programados</p>
+                                <div class="tech-actions mt-3">
+                                    <button onclick="loadPage('citas.html')" class="tech-btn tech-btn-accent">
+                                        <i class="fas fa-calendar-alt"></i> Ver Citas
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'LABORATORISTA':
+                    content = `
+                        <div class="tech-card-grid">
+                            <div class="tech-card">
+                                <h3><i class="fas fa-vial"></i> Estudios Pendientes</h3>
+                                <p>Gestiona los estudios que requieren procesamiento</p>
+                                <div class="tech-actions mt-3">
+                                    <button onclick="loadPage('procesar-estudios.html')" class="tech-btn tech-btn-primary">
+                                        <i class="fas fa-flask"></i> Procesar Estudios
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="tech-card">
+                                <h3><i class="fas fa-clipboard-list"></i> Resultados por Validar</h3>
+                                <p>Valida los resultados generados por el laboratorio</p>
+                                <div class="tech-actions mt-3">
+                                    <button onclick="loadPage('validar-resultados.html')" class="tech-btn tech-btn-accent">
+                                        <i class="fas fa-check-circle"></i> Validar Resultados
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                default:
+                    content = `
+                        <div class="tech-card">
+                            <h3><i class="fas fa-info-circle"></i> Bienvenido</h3>
+                            <p>Selecciona una opción del menú para comenzar a utilizar el sistema.</p>
+                        </div>
+                    `;
+            }
+            
+            dashboardContent.innerHTML = content;
+        }
+
+        async function loadQuickStats() {
+            try {
+                const response = await fetch('/api/metricas', {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const stats = data.metricas_generales;
+                    
+                    document.getElementById('quickStats').innerHTML = `
+                        <div class="tech-stat-item">
+                            <div class="tech-stat-value">${stats.total_ordenes || 0}</div>
+                            <div class="tech-stat-label">Órdenes Totales</div>
+                        </div>
+                        <div class="tech-stat-item">
+                            <div class="tech-stat-value">${stats.total_usuarios || 0}</div>
+                            <div class="tech-stat-label">Usuarios</div>
+                        </div>
+                        <div class="tech-stat-item">
+                            <div class="tech-stat-value">${stats.total_estudios || 0}</div>
+                            <div class="tech-stat-label">Estudios</div>
+                        </div>
+                        <div class="tech-stat-item">
+                            <div class="tech-stat-value">${stats.ordenes_completadas || 0}</div>
+                            <div class="tech-stat-label">Completadas</div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error cargando estadísticas rápidas:', error);
+            }
+        }
+
+        async function loadSystemStats() {
+            try {
+                const response = await fetch('/api/estadisticas', {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    document.getElementById('systemStats').innerHTML = `
+                        <div class="stat-card">
+                            <div class="stat-value">$${data.totales?.ingresos_totales || 0}</div>
+                            <div class="stat-label">Ingresos Totales</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${data.totales?.promedio_orden || 0}</div>
+                            <div class="stat-label">Promedio por Orden</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${data.estudios_populares?.length || 0}</div>
+                            <div class="stat-label">Estudios Populares</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${data.estadisticas_diarias?.length || 0}</div>
+                            <div class="stat-label">Días con Actividad</div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error cargando estadísticas del sistema:', error);
+            }
+        }
+
+        async function loadRecentActivity() {
+            try {
+                const response = await fetch('/api/ordenes?limit=5', {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const ordenes = await response.json();
+                    
+                    let activityHTML = '<div class="tech-table-container">';
+                    activityHTML += `
+                        <table class="tech-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Fecha</th>
+                                    <th>Estado</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    ordenes.slice(0, 5).forEach(orden => {
+                        activityHTML += `
+                            <tr>
+                                <td><a href="orden-detalle.html?id=${orden.id_orden}" class="tech-nav-item">#${orden.id_orden}</a></td>
+                                <td>${new Date(orden.fecha_solicitud).toLocaleDateString()}</td>
+                                <td><span class="tech-status status-${orden.estado_order.toLowerCase()}">${orden.estado_order}</span></td>
+                                <td>$${orden.total || 0}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    activityHTML += `
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="tech-actions mt-3">
+                        <button onclick="loadPage('ordenes.html')" class="tech-btn tech-btn-outline">
+                            <i class="fas fa-list"></i> Ver Todas las Órdenes
+                        </button>
+                    </div>
+                    `;
+                    
+                    document.getElementById('recentActivity').innerHTML = activityHTML;
+                }
+            } catch (error) {
+                console.error('Error cargando actividad reciente:', error);
+                document.getElementById('recentActivity').innerHTML = `
+                    <p class="tech-text-secondary">No se pudo cargar la actividad reciente</p>
+                `;
+            }
+        }
+
+        function loadPage(page) {
+            window.location.href = `/${page}`;
+        }
+
+        async function logout() {
+            try {
+                await fetch('/logout', { credentials: 'include' });
+                window.location.href = '/login.html';
+            } catch (error) {
+                console.error('Error cerrando sesión:', error);
+            }
+        }
+
+        function initializeNavbar() {
+            // Marcar página activa
+            const currentPage = window.location.pathname.split('/').pop();
+            const navItems = document.querySelectorAll('.tech-nav-item');
+            
+            navItems.forEach(item => {
+                const href = item.getAttribute('href');
+                if (href && href.includes(currentPage)) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        // Cargar todo al iniciar
+        document.addEventListener('DOMContentLoaded', loadNavbar);
+    </script>
+</body>
+</html>
