@@ -1,0 +1,320 @@
+/* Estilos básicos para que funcione el sistema */
+:root {
+    --primary-color: #2563eb;
+    --secondary-color: #7c3aed;
+    --success-color: #059669;
+    --danger-color: #dc2626;
+    --warning-color: #d97706;
+    --dark-color: #1f2937;
+    --light-color: #f9fafb;
+    --gray-color: #6b7280;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
+
+.tech-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.tech-navbar {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.tech-nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tech-brand {
+    display: flex;
+    flex-direction: column;
+}
+
+.tech-logo {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--primary-color);
+    letter-spacing: -0.5px;
+}
+
+.tech-tagline {
+    font-size: 0.9rem;
+    color: var(--gray-color);
+    margin-top: 2px;
+}
+
+.tech-nav-menu {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.tech-nav-item {
+    text-decoration: none;
+    color: var(--dark-color);
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.tech-nav-item:hover {
+    background: rgba(37, 99, 235, 0.1);
+    color: var(--primary-color);
+}
+
+.tech-nav-item.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+.tech-card {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tech-hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 3rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.tech-hero h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.tech-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.tech-stat-item {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 1.5rem;
+    border-radius: 12px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+}
+
+.tech-stat-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+}
+
+.tech-stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.tech-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 1rem;
+}
+
+.tech-btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.tech-btn-primary:hover {
+    background: #1d4ed8;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
+}
+
+.tech-btn-accent {
+    background: var(--secondary-color);
+    color: white;
+}
+
+.tech-btn-outline {
+    background: transparent;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+}
+
+.tech-btn-danger {
+    background: var(--danger-color);
+    color: white;
+}
+
+.tech-btn-group {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.tech-form-container {
+    max-width: 500px;
+    margin: 2rem auto;
+}
+
+.tech-form-group {
+    margin-bottom: 1.5rem;
+}
+
+.tech-form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--dark-color);
+}
+
+.tech-form-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.tech-form-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.tech-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.badge-ADMIN {
+    background: #dc2626;
+    color: white;
+}
+
+.badge-MEDICO {
+    background: #059669;
+    color: white;
+}
+
+.badge-AUDITOR {
+    background: #d97706;
+    color: white;
+}
+
+.badge-INVESTIGADOR {
+    background: #7c3aed;
+    color: white;
+}
+
+.tech-table-container {
+    overflow-x: auto;
+    margin-top: 1rem;
+}
+
+.tech-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tech-table th,
+.tech-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.tech-table th {
+    background: #f9fafb;
+    font-weight: 600;
+    color: var(--dark-color);
+}
+
+.tech-status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-pendiente {
+    background: #fbbf24;
+    color: #78350f;
+}
+
+.status-validado {
+    background: #10b981;
+    color: #064e3b;
+}
+
+.status-cancelado {
+    background: #ef4444;
+    color: #7f1d1d;
+}
+
+.loading-spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--primary-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 2rem auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.mt-3 { margin-top: 1rem; }
+.mt-4 { margin-top: 1.5rem; }
+.mb-4 { margin-bottom: 1.5rem; }
+.p-4 { padding: 1.5rem; }
+
+.d-flex { display: flex; }
+.align-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-2 { gap: 0.5rem; }
+.gap-3 { gap: 1rem; }
+
+.text-center { text-align: center; }
+.tech-text-secondary { color: var(--gray-color); }
+.tech-text-center { text-align: center; }
