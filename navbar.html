@@ -1,0 +1,114 @@
+<nav class="tech-navbar">
+    <div class="tech-nav-container">
+        <div class="tech-brand">
+            <div class="tech-logo">BIO-TECH</div>
+            <div class="tech-tagline">Sistema Biomédico Inteligente</div>
+        </div>
+        
+        <div class="tech-nav-menu" id="navMenu">
+            <a href="/index.html" class="tech-nav-item">
+                🏠 Inicio
+            </a>
+            
+            <!-- Menú dinámico se cargará aquí -->
+            <div id="dynamicMenu"></div>
+            
+            <!-- Información del usuario -->
+            <div id="userNavInfo" style="display: flex; align-items: center; gap: 1rem;">
+                <div class="loading-spinner" style="width: 20px; height: 20px;"></div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<script>
+    // Cargar información del usuario
+    async function loadUserNavInfo() {
+        try {
+            const response = await fetch('/session-check', {
+                credentials: 'include'
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                
+                if (data.loggedIn) {
+                    // Información del usuario
+                    document.getElementById('userNavInfo').innerHTML = `
+                        <span style="font-weight: 600;">${data.usuario.username}</span>
+                        <span class="tech-badge badge-${data.usuario.tipo}">${data.usuario.tipo}</span>
+                        <a href="/logout" class="tech-btn" style="padding: 0.5rem 1rem; background: #dc2626; color: white;">
+                            🚪 Salir
+                        </a>
+                    `;
+                    
+                    // Menú dinámico según rol
+                    loadDynamicMenu(data.usuario.tipo);
+                }
+            }
+        } catch (error) {
+            console.error('Error cargando información:', error);
+        }
+    }
+    
+    function loadDynamicMenu(userType) {
+        const dynamicMenu = document.getElementById('dynamicMenu');
+        let menuHTML = '';
+        
+        switch(userType) {
+            case 'ADMIN':
+            case 'admin':
+                menuHTML = `
+                    <a href="/admin.html" class="tech-nav-item">
+                        👑 Admin
+                    </a>
+                    <a href="/ordenes.html" class="tech-nav-item">
+                        📋 Órdenes
+                    </a>
+                    <a href="/catalogo.html" class="tech-nav-item">
+                        📚 Catálogo
+                    </a>
+                `;
+                break;
+                
+            case 'MEDICO':
+            case 'medico':
+                menuHTML = `
+                    <a href="/ordenes.html" class="tech-nav-item">
+                        📋 Mis Órdenes
+                    </a>
+                    <a href="/pacientes.html" class="tech-nav-item">
+                        👥 Pacientes
+                    </a>
+                    <a href="/resultados.html" class="tech-nav-item">
+                        📊 Resultados
+                    </a>
+                `;
+                break;
+                
+            case 'AUDITOR':
+            case 'auditor':
+                menuHTML = `
+                    <a href="/reportes.html" class="tech-nav-item">
+                        📈 Reportes
+                    </a>
+                    <a href="/auditoria.html" class="tech-nav-item">
+                        🔍 Auditoría
+                    </a>
+                `;
+                break;
+                
+            default:
+                menuHTML = `
+                    <a href="/perfil.html" class="tech-nav-item">
+                        👤 Mi Perfil
+                    </a>
+                `;
+        }
+        
+        dynamicMenu.innerHTML = menuHTML;
+    }
+    
+    // Cargar al iniciar
+    document.addEventListener('DOMContentLoaded', loadUserNavInfo);
+</script>
