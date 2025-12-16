@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Bio-Tech</title>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        .error-message {
+            background: #fee;
+            border: 1px solid #f99;
+            color: #c00;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        .success-message {
+            background: #efe;
+            border: 1px solid #9f9;
+            color: #090;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        .loading {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <nav class="tech-navbar">
+        <div class="tech-nav-container">
+            <div class="tech-brand">
+                <div class="tech-logo">BIO-TECH</div>
+                <div class="tech-tagline">Sistema Biomédico Inteligente</div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="tech-container">
+        <div class="tech-form-container">
+            <div class="tech-hero" style="padding: 2rem; margin-bottom: 2rem;">
+                <h1>🔐 Iniciar Sesión</h1>
+                <p>Accede al sistema biomédico</p>
+            </div>
+
+            <form id="loginForm">
+                <div class="tech-form-group">
+                    <label for="username" class="tech-form-label">👤 Usuario</label>
+                    <input type="text" 
+                           id="username" 
+                           name="username" 
+                           class="tech-form-input" 
+                           placeholder="Ingresa tu nombre de usuario"
+                           required
+                           autocomplete="username">
+                </div>
+
+                <div class="tech-form-group">
+                    <label for="password" class="tech-form-label">🔒 Contraseña</label>
+                    <input type="password" 
+                           id="password" 
+                           name="password" 
+                           class="tech-form-input" 
+                           placeholder="Ingresa tu contraseña"
+                           required
+                           autocomplete="current-password">
+                </div>
+
+                <div class="tech-form-group">
+                    <button type="submit" class="tech-btn tech-btn-primary" style="width: 100%;" id="submitBtn">
+                        <span class="tech-btn-icon">🚀</span> Iniciar Sesión
+                    </button>
+                </div>
+
+                <div class="tech-form-group" style="text-align: center; margin-top: 1.5rem;">
+                    <p class="tech-text-secondary">¿No tienes una cuenta?</p>
+                    <a href="/registro.html" class="tech-btn tech-btn-outline" style="width: 100%;">
+                        <span class="tech-btn-icon">📝</span> Regístrate Aquí
+                    </a>
+                </div>
+            </form>
+
+            <div id="message"></div>
+        </div>
+
+        <div class="tech-card" style="margin-top: 2rem; text-align: center;">
+            <h3>📋 Roles del Sistema</h3>
+            <p>Conoce los diferentes perfiles de usuario:</p>
+            <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
+                <span class="tech-badge" style="background: #dc2626;">ADMIN</span>
+                <span class="tech-badge" style="background: #059669;">MÉDICO</span>
+                <span class="tech-badge" style="background: #2563eb;">PACIENTE</span>
+                <span class="tech-badge" style="background: #7c3aed;">INVESTIGADOR</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const messageDiv = document.getElementById('message');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            // Limpiar mensajes anteriores
+            messageDiv.innerHTML = '';
+            
+            // Mostrar loading
+            submitBtn.classList.add('loading');
+            submitBtn.disabled = true;
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="tech-btn-icon">⏳</span> Procesando...';
+            
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams(formData),
+                    credentials: 'include' // IMPORTANTE para cookies de sesión
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Mostrar mensaje de éxito
+                    messageDiv.innerHTML = `
+                        <div class="success-message">
+                            <h3>✅ Login exitoso</h3>
+                            <p>Redirigiendo al dashboard...</p>
+                        </div>
+                    `;
+                    
+                    // Redirigir después de 1 segundo
+                    setTimeout(() => {
+                        window.location.href = result.redirect || '/index.html';
+                    }, 1000);
+                    
+                } else {
+                    // Mostrar error
+                    messageDiv.innerHTML = `
+                        <div class="error-message">
+                            <h3>❌ Error de login</h3>
+                            <p>${result.message || 'Credenciales incorrectas'}</p>
+                        </div>
+                    `;
+                    
+                    // Enfocar en el campo de usuario
+                    document.getElementById('username').focus();
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                messageDiv.innerHTML = `
+                    <div class="error-message">
+                        <h3>💥 Error de conexión</h3>
+                        <p>No se pudo conectar con el servidor. Verifica que el servidor esté corriendo.</p>
+                        <p>Detalle: ${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                // Restaurar botón
+                submitBtn.classList.remove('loading');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        });
+
+        // Verificar si ya hay sesión al cargar la página
+        async function checkExistingSession() {
+            try {
+                const response = await fetch('/session-check', {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.loggedIn) {
+                        // Ya está logueado, redirigir
+                        window.location.href = '/index.html';
+                    }
+                }
+            } catch (error) {
+                console.log('No hay sesión activa o error de conexión');
+            }
+        }
+
+        // Verificar sesión al cargar
+        document.addEventListener('DOMContentLoaded', checkExistingSession);
+
+        // Permitir login con Enter
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+            }
+        });
+    </script>
+</body>
+</html>
