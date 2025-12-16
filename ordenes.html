@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Órdenes - BioTech</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div id="navbar"></div>
+
+    <div class="tech-container">
+        <div class="tech-hero">
+            <h1>📋 Gestión de Órdenes</h1>
+            <p>Administra las órdenes de estudios médicos</p>
+        </div>
+
+        <div class="tech-card">
+            <h2>Lista de Órdenes</h2>
+            <div class="tech-btn-group mb-4">
+                <button class="tech-btn tech-btn-primary" onclick="window.location.href='/nueva-orden.html'">
+                    ✨ Nueva Orden
+                </button>
+                <button class="tech-btn tech-btn-outline" onclick="loadOrders()">
+                    🔄 Actualizar
+                </button>
+            </div>
+            
+            <div id="ordersList" class="tech-table-container">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Cargar navbar
+        async function loadNavbar() {
+            const response = await fetch('/navbar.html');
+            document.getElementById('navbar').innerHTML = await response.text();
+        }
+        
+        // Cargar órdenes
+        async function loadOrders() {
+            try {
+                const response = await fetch('/api/ordenes?limit=20', {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const orders = await response.json();
+                    displayOrders(orders);
+                }
+            } catch (error) {
+                console.error('Error cargando órdenes:', error);
+                document.getElementById('ordersList').innerHTML = `
+                    <div class="tech-card" style="text-align: center; padding: 2rem;">
+                        <h3>❌ Error</h3>
+                        <p>No se pudieron cargar las órdenes</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function displayOrders(orders) {
+            if (orders.length === 0) {
+                document.getElementById('ordersList').innerHTML = `
+                    <div class="tech-card" style="text-align: center; padding: 2rem;">
+                        <h3>📭 No hay órdenes</h3>
+                        <p>No se encontraron órdenes en el sistema</p>
+                        <button class="tech-btn tech-btn-primary mt-3" onclick="window.location.href='/nueva-orden.html'">
+                            Crear Primera Orden
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            let tableHTML = `
+                <table class="tech-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                            <th>Total</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            orders.forEach(order => {
+                tableHTML += `
+                    <tr>
+                        <td><strong>#${order.id_orden}</strong></td>
+                        <td>${new Date(order.fecha_solicitud).toLocaleDateString()}</td>
+                        <td><span class="tech-status status-${order.estado_order?.toLowerCase() || 'pendiente'}">${order.estado_order || 'Pendiente'}</span></td>
+                        <td>$${order.total || '0.00'}</td>
+                        <td>
+                            <button class="tech-btn" style="padding: 0.25rem 0.5rem; background: #2563eb; color: white;"
+                                    onclick="viewOrder(${order.id_orden})">
+                                👁️ Ver
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += `
+                    </tbody>
+                </table>
+            `;
+            
+            document.getElementById('ordersList').innerHTML = tableHTML;
+        }
+        
+        function viewOrder(id) {
+            window.location.href = `/orden-detalle.html?id=${id}`;
+        }
+        
+        // Cargar todo al iniciar
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadNavbar();
+            await loadOrders();
+        });
+    </script>
+</body>
+</html>
