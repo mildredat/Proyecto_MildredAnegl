@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes y Estadísticas - BioTech</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div id="navbar"></div>
+
+    <div class="tech-container">
+        <div class="tech-hero">
+            <h1><i class="fas fa-chart-bar"></i> Reportes y Estadísticas</h1>
+            <p>Análisis detallado y métricas del sistema biomédico</p>
+        </div>
+
+        <!-- Filtros de Reportes -->
+        <div class="tech-card mb-4">
+            <h3><i class="fas fa-filter"></i> Configurar Reporte</h3>
+            <div class="d-grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                <div class="tech-form-group">
+                    <label class="tech-form-label">Período</label>
+                    <select id="reportPeriod" class="tech-form-select" onchange="loadReport()">
+                        <option value="today">Hoy</option>
+                        <option value="yesterday">Ayer</option>
+                        <option value="week">Esta Semana</option>
+                        <option value="month" selected>Este Mes</option>
+                        <option value="quarter">Este Trimestre</option>
+                        <option value="year">Este Año</option>
+                        <option value="custom">Personalizado</option>
+                    </select>
+                </div>
+                
+                <div class="tech-form-group" id="customDateRange" style="display: none;">
+                    <label class="tech-form-label">Rango Personalizado</label>
+                    <div class="d-flex gap-2">
+                        <input type="date" id="customStart" class="tech-form-input" onchange="loadReport()">
+                        <input type="date" id="customEnd" class="tech-form-input" onchange="loadReport()">
+                    </div>
+                </div>
+                
+                <div class="tech-form-group">
+                    <label class="tech-form-label">Tipo de Reporte</label>
+                    <select id="reportType" class="tech-form-select" onchange="loadReport()">
+                        <option value="general">General</option>
+                        <option value="orders">Órdenes</option>
+                        <option value="revenue">Ingresos</option>
+                        <option value="studies">Estudios</option>
+                        <option value="users">Usuarios</option>
+                    </select>
+                </div>
+                
+                <div class="tech-form-group">
+                    <label class="tech-form-label">Formato de Salida</label>
+                    <select id="outputFormat" class="tech-form-select">
+                        <option value="html">Vista Web</option>
+                        <option value="pdf">PDF</option>
+                        <option value="excel">Excel</option>
+                        <option value="csv">CSV</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="tech-actions mt-3">
+                <button class="tech-btn tech-btn-primary" onclick="loadReport()">
+                    <i class="fas fa-sync-alt"></i> Actualizar Reporte
+                </button>
+                <button class="tech-btn tech-btn-accent" onclick="exportReport()">
+                    <i class="fas fa-download"></i> Exportar Reporte
+                </button>
+                <button class="tech-btn tech-btn-outline" onclick="scheduleReport()">
+                    <i class="fas fa-calendar-alt"></i> Programar
+                </button>
+            </div>
+        </div>
+
+        <!-- Métricas Principales -->
+        <div class="dashboard-grid mb-4">
+            <div class="dashboard-card">
+                <h3><i class="fas fa-chart-line"></i> Métricas del Período</h3>
+                <div id="periodMetrics" class="dashboard-stats">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+            
+            <div class="dashboard-card">
+                <h3><i class="fas fa-trending-up"></i> Comparativa</h3>
+                <div id="comparisonMetrics" class="dashboard-stats">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="tech-card-grid mb-4">
+            <div class="tech-card">
+                <h3><i class="fas fa-chart-pie"></i> Distribución de Órdenes</h3>
+                <div class="chart-container">
+                    <canvas id="ordersChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="tech-card">
+                <h3><i class="fas fa-chart-bar"></i> Ingresos por Día</h3>
+                <div class="chart-container">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reporte Detallado -->
+        <div class="tech-card mb-4">
+            <h3><i class="fas fa-file-alt"></i> Reporte Detallado</h3>
+            <div id="detailedReport" class="tech-table-container">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+
+        <!-- Análisis Avanzado -->
+        <div class="tech-card">
+            <h3><i class="fas fa-chart-line"></i> Análisis Avanzado</h3>
+            <div class="tabs">
+                <button class="tab-btn active" onclick="openAnalysisTab('trends')">
+                    <i class="fas fa-trending-up"></i> Tendencias
+                </button>
+                <button class="tab-btn" onclick="openAnalysisTab('forecast')">
+                    <i class="fas fa-crystal-ball"></i> Pronósticos
+                </button>
+                <button class="tab-btn" onclick="openAnalysisTab('comparison')">
+                    <i class="fas fa-balance-scale"></i> Comparativas
+                </button>
+            </div>
+            
+            <div id="analysis-content">
+                <!-- Contenido de análisis dinámico -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let ordersChart = null;
+        let revenueChart = null;
+        
+        // Cargar navbar
+        async function loadNavbar() {
+            try {
+                const response = await fetch('/navbar.html');
+                document.getElementById('navbar').innerHTML = await response.text();
+            } catch (error) {
+                console.error('Error cargando navbar:', error);
+            }
+        }
+        
+        // Cargar reporte
+        async function loadReport() {
+            const period = document.getElementById('reportPeriod').value;
+            const type = document.getElementById('reportType').value;
+            
+            // Mostrar/ocultar rango personalizado
+            if (period === 'custom') {
+                document.getElementById('customDateRange').style.display = 'block';
+            } else {
+                document.getElementById('customDateRange').style.display = 'none';
+            }
+            
+            // Cargar métricas
+            await loadPeriodMetrics(period, type);
+            await loadComparisonMetrics(period);
+            await loadCharts(period, type);
+            await loadDetailedReport(period, type);
+        }
+        
+        async function loadPeriodMetrics(period, type) {
+            try {
+                const response = await fetch(`/api/reportes/metricas?periodo=${period}&tipo=${type}`, {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const metrics = await response.json();
+                    
+                    document.getElementById('periodMetrics').innerHTML = `
+                        <div class="stat-card">
+                            <div class="stat-value">${metrics.ordenes || 0}</div>
+                            <div class="stat-label">Órdenes</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">$${metrics.ingresos || 0}</div>
+                            <div class="stat-label">Ingresos</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${metrics.estudios || 0}</div>
+                            <div class="stat-label">Estudios</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${metrics.promedio || 0}</div>
+                            <div class="stat-label">Promedio/Orden</div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error cargando métricas:', error);
+            }
+        }
+        
+        async function loadComparisonMetrics(period) {
+            try {
+                const response = await fetch(`/api/reportes/comparacion?periodo=${period}`, {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const comparison = await response.json();
+                    
+                    document.getElementById('comparisonMetrics').innerHTML = `
+                        <div class="stat-card">
+                            <div class="stat-value ${comparison.ordenes_variacion >= 0 ? 'positive' : 'negative'}">
+                                ${comparison.ordenes_variacion >= 0 ? '+' : ''}${comparison.ordenes_variacion}%
+                            </div>
+                            <div class="stat-label">Órdenes</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value ${comparison.ingresos_variacion >= 0 ? 'positive' : 'negative'}">
+                                ${comparison.ingresos_variacion >= 0 ? '+' : ''}${comparison.ingresos_variacion}%
+                            </div>
+                            <div class="stat-label">Ingresos</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value ${comparison.eficiencia_variacion >= 0 ? 'positive' : 'negative'}">
+                                ${comparison.eficiencia_variacion >= 0 ? '+' : ''}${comparison.eficiencia_variacion}%
+                            </div>
+                            <div class="stat-label">Eficiencia</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${comparison.tiempo_promedio || 0}</div>
+                            <div class="stat-label">Tiempo Promedio</div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error cargando comparativas:', error);
+            }
+        }
+        
+        async function loadCharts(period, type) {
+            try {
+                const response = await fetch(`/api/reportes/graficos?periodo=${period}&tipo=${type}`, {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const chartData = await response.json();
+                    
+                    // Gráfico de distribución de órdenes
+                    if (ordersChart) ordersChart.destroy();
+                    
+                    const ordersCtx = document.getElementById('ordersChart').getContext('2d');
+                    ordersChart = new Chart(ordersCtx, {
+                        type: 'pie',
+                        data: {
+                            labels: chartData.ordenes_estados?.map(item => item.estado) || [],
+                            datasets: [{
+                                data: chartData.ordenes_estados?.map(item => item.cantidad) || [],
+                                backgroundColor: [
+                                    '#06b6d4', // Pendiente
+                                    '#3b82f6', // Tomada
+                                    '#8b5cf6', // Procesando
+                                    '#10b981', // Validado
+                                    '#ef4444'  // Cancelado
+                                ]
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom'
+                                }
+                            }
+                        }
+                    });
+                    
+                    // Gráfico de ingresos por día
+                    if (revenueChart) revenueChart.destroy();
+                    
+                    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+                    revenueChart = new Chart(revenueCtx, {
+                        type: 'line',
+                        data: {
+                            labels: chartData.ingresos_diarios?.map(item => item.fecha) || [],
+                            datasets: [{
+                                label: 'Ingresos',
+                                data: chartData.ingresos_diarios?.map(item => item.ingreso) || [],
+                                borderColor: '#06b6d4',
+                                backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                                fill: true,
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return '$' + value;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error cargando gráficos:', error);
+            }
+        }
+        
+        async function loadDetailedReport(period, type) {
+            try {
+                const response = await fetch(`/api/reportes/detalle?periodo=${period}&tipo=${type}`, {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const report = await response.json();
+                    
+                    let tableHTML = '';
+                    
+                    switch(type) {
+                        case 'orders':
+                            tableHTML = generateOrdersTable(report);
+                            break;
+                        case 'revenue':
+                            tableHTML = generateRevenueTable(report);
+                            break;
+                        case 'studies':
+                            tableHTML = generateStudiesTable(report);
+                            break;
+                        case 'users':
+                            tableHTML = generateUsersTable(report);
+                            break;
+                        default:
+                            tableHTML = generateGeneralTable(report);
+                    }
+                    
+                    document.getElementById('detailedReport').innerHTML = tableHTML;
+                }
+            } catch (error) {
+                console.error('Error cargando reporte detallado:', error);
+            }
+        }
+        
+        function generateOrdersTable(report) {
+            return `
+                <table class="tech-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Fecha</th>
+                            <th>Paciente</th>
+                            <th>Médico</th>
+                            <th>Estudios</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${report.ordenes?.map(order => `
+                            <tr>
+                                <td>${order.id_orden}</td>
+                                <td>${new Date(order.fecha_solicitud).toLocaleDateString()}</td>
+                                <td>${order.paciente}</td>
+                                <td>${order.medico}</td>
+                                <td>${order.total_estudios}</td>
+                                <td>$${order.total}</td>
+                                <td><span class="tech-status status-${order.estado.toLowerCase()}">${order.estado}</span></td>
+                            </tr>
+                        `).join('') || '<tr><td colspan="7" class="tech-text-center">No hay datos</td></tr>'}
+                    </tbody>
+                </table>
+            `;
+        }
+        
+        function generateRevenueTable(report) {
+            return `
+                <table class="tech-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Órdenes</th>
+                            <th>Ingresos</th>
+                            <th>Promedio/Orden</th>
+                            <th>Estudios/Orden</th>
+                            <th>Crecimiento</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${report.ingresos?.map(item => `
+                            <tr>
+                                <td>${item.fecha}</td>
+                                <td>${item.ordenes}</td>
+                                <td><strong>$${item.ingresos}</strong></td>
+                                <td>$${item.promedio}</td>
+                                <td>${item.estudios_promedio}</td>
+                                <td>
+                                    <span class="${item.crecimiento >= 0 ? 'positive' : 'negative'}">
+                                        ${item.crecimiento >= 0 ? '+' : ''}${item.crecimiento}%
+                                    </span>
+                                </td>
+                            </tr>
+                        `).join('') || '<tr><td colspan="6" class="tech-text-center">No hay datos</td></tr>'}
+                    </tbody>
+                </table>
+            `;
+        }
+        
+        // Funciones de exportación
+        async function exportReport() {
+            const period = document.getElementById('reportPeriod').value;
+            const type = document.getElementById('reportType').value;
+            const format = document.getElementById('outputFormat').value;
+            
+            let url = `/api/exportar-excel/reporte?periodo=${period}&tipo=${type}&formato=${format}`;
+            
+            if (period === 'custom') {
+                const start = document.getElementById('customStart').value;
+                const end = document.getElementById('customEnd').value;
+                if (start && end) {
+                    url += `&fecha_inicio=${start}&fecha_fin=${end}`;
+                }
+            }
+            
+            window.open(url, '_blank');
+        }
+        
+        function scheduleReport() {
+            alert('Función de programación de reportes en desarrollo');
+        }
+        
+        // Funciones de análisis
+        function openAnalysisTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            event.currentTarget.classList.add('active');
+            
+            // Cargar contenido del análisis
+            loadAnalysisContent(tabName);
+        }
+        
+        async function loadAnalysisContent(tabName) {
+            const contentDiv = document.getElementById('analysis-content');
+            
+            let content = '';
+            
+            switch(tabName) {
+                case 'trends':
+                    content = await loadTrendsAnalysis();
+                    break;
+                case 'forecast':
+                    content = await loadForecastAnalysis();
+                    break;
+                case 'comparison':
+                    content = await loadComparisonAnalysis();
+                    break;
+            }
+            
+            contentDiv.innerHTML = content;
+        }
+        
+        async function loadTrendsAnalysis() {
+            try {
+                const response = await fetch('/api/analisis/tendencias', {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const trends = await response.json();
+                    
+                    return `
+                        <div class="d-grid gap-3 mt-3" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+                            <div class="tech-card">
+                                <h4><i class="fas fa-trending-up"></i> Tendencias de Crecimiento</h4>
+                                <p>Crecimiento mensual: <strong>${trends.crecimiento_mensual}%</strong></p>
+                                <p>Crecimiento trimestral: <strong>${trends.crecimiento_trimestral}%</strong></p>
+                                <p>Tendencia general: <span class="${trends.tendencia_general >= 0 ? 'positive' : 'negative'}">
+                                    ${trends.tendencia_general >= 0 ? 'Positiva' : 'Negativa'}
+                                </span></p>
+                            </div>
+                            
+                            <div class="tech-card">
+                                <h4><i class="fas fa-calendar-alt"></i> Estacionalidad</h4>
+                                <p>Mes más activo: <strong>${trends.mes_mas_activo}</strong></p>
+                                <p>Día más activo: <strong>${trends.dia_mas_activo}</strong></p>
+                                <p>Hora pico: <strong>${trends.hora_pico}</strong></p>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-container mt-3" style="height: 300px;">
+                            <canvas id="trendsChart"></canvas>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error cargando tendencias:', error);
+                return '<p class="tech-text-center p-4">Error al cargar análisis de tendencias</p>';
+            }
+        }
+        
+        // Cargar todo al iniciar
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadNavbar();
+            await loadReport();
+            
+            // Configurar fechas por defecto para rango personalizado
+            const today = new Date();
+            const weekAgo = new Date(today);
+            weekAgo.setDate(today.getDate() - 7);
+            
+            document.getElementById('customStart').value = weekAgo.toISOString().split('T')[0];
+            document.getElementById('customEnd').value = today.toISOString().split('T')[0];
+        });
+    </script>
+
+    <style>
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        
+        .positive {
+            color: var(--tech-success);
+        }
+        
+        .negative {
+            color: var(--tech-danger);
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            border-bottom: 2px solid var(--tech-border);
+        }
+        
+        .tab-btn {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: var(--tech-text);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .tab-btn:hover {
+            color: var(--tech-accent-light);
+        }
+        
+        .tab-btn.active {
+            color: var(--tech-accent-light);
+            border-bottom-color: var(--tech-accent);
+        }
+    </style>
+</body>
+</html>
