@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - Bio-Tech</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <nav class="tech-navbar">
+        <div class="tech-nav-container">
+            <div class="tech-brand">
+                <div class="tech-logo">BIO-TECH</div>
+                <div class="tech-tagline">Registro de Usuarios</div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="tech-container">
+        <div class="tech-form-container">
+            <div class="tech-hero" style="padding: 2rem; margin-bottom: 2rem;">
+                <h1>📝 Crear Cuenta</h1>
+                <p>Regístrate en el sistema biomédico</p>
+            </div>
+
+            <form id="registroForm">
+                <div class="tech-form-group">
+                    <label for="username" class="tech-form-label">👤 Nombre de Usuario</label>
+                    <input type="text" 
+                           id="username" 
+                           name="username" 
+                           class="tech-form-input" 
+                           placeholder="Ej: juan.perez"
+                           required>
+                    <small class="tech-text-secondary">Este será tu nombre para iniciar sesión</small>
+                </div>
+
+                <div class="tech-form-group">
+                    <label for="password" class="tech-form-label">🔒 Contraseña</label>
+                    <input type="password" 
+                           id="password" 
+                           name="password" 
+                           class="tech-form-input" 
+                           placeholder="Mínimo 6 caracteres"
+                           minlength="6"
+                           required>
+                </div>
+
+                <div class="tech-form-group">
+                    <label for="confirmPassword" class="tech-form-label">✅ Confirmar Contraseña</label>
+                    <input type="password" 
+                           id="confirmPassword" 
+                           name="confirmPassword" 
+                           class="tech-form-input" 
+                           placeholder="Repite tu contraseña"
+                           required>
+                    <div id="passwordMatch" style="margin-top: 0.5rem;"></div>
+                </div>
+
+                <div class="tech-form-group">
+                    <label for="codigo_acceso" class="tech-form-label">🔑 Código de Acceso</label>
+                    <input type="text" 
+                           id="codigo_acceso" 
+                           name="codigo_acceso" 
+                           class="tech-form-input" 
+                           placeholder="Código proporcionado"
+                           required>
+                    <small class="tech-text-secondary">Debes tener un código válido para registrarte</small>
+                </div>
+
+                <div class="tech-form-group">
+                    <label class="tech-form-label">🎯 Rol Asignado</label>
+                    <div id="roleDisplay" class="tech-card" style="padding: 1rem; background: rgba(6, 182, 212, 0.1);">
+                        <p style="text-align: center;">El rol se determinará automáticamente con el código de acceso</p>
+                    </div>
+                </div>
+
+                <div class="tech-form-group">
+                    <button type="submit" class="tech-btn tech-btn-primary" style="width: 100%;">
+                        <span class="tech-btn-icon">🚀</span> Crear Cuenta
+                    </button>
+                </div>
+
+                <div class="tech-form-group" style="text-align: center; margin-top: 1.5rem;">
+                    <p class="tech-text-secondary">¿Ya tienes una cuenta?</p>
+                    <a href="/login.html" class="tech-btn tech-btn-outline" style="width: 100%;">
+                        <span class="tech-btn-icon">←</span> Iniciar Sesión
+                    </a>
+                </div>
+            </form>
+
+            <div id="message" style="margin-top: 1rem;"></div>
+        </div>
+
+        <div class="tech-card" style="margin-top: 2rem;">
+            <h3>ℹ️ Información Importante</h3>
+            <ul style="padding-left: 1.5rem; color: var(--tech-text-secondary);">
+                <li>Necesitas un código de acceso válido para registrarte</li>
+                <li>El código determina automáticamente tu rol en el sistema</li>
+                <li>Guarda tu nombre de usuario y contraseña de forma segura</li>
+                <li>Contacta al administrador si necesitas un código de acceso</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Verificar coincidencia de contraseñas
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirmPassword');
+        const passwordMatchDiv = document.getElementById('passwordMatch');
+        
+        function checkPasswordMatch() {
+            if (passwordInput.value && confirmPasswordInput.value) {
+                if (passwordInput.value === confirmPasswordInput.value) {
+                    passwordMatchDiv.innerHTML = '<span style="color: #10b981;">✓ Las contraseñas coinciden</span>';
+                } else {
+                    passwordMatchDiv.innerHTML = '<span style="color: #ef4444;">✗ Las contraseñas no coinciden</span>';
+                }
+            }
+        }
+        
+        passwordInput.addEventListener('input', checkPasswordMatch);
+        confirmPasswordInput.addEventListener('input', checkPasswordMatch);
+        
+        // Verificar código de acceso en tiempo real
+        const codigoInput = document.getElementById('codigo_acceso');
+        const roleDisplay = document.getElementById('roleDisplay');
+        
+        codigoInput.addEventListener('blur', async function() {
+            const codigo = this.value.trim();
+            if (codigo.length >= 3) {
+                try {
+                    const response = await fetch('/verificar-codigo', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ codigo: codigo })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.valido) {
+                        roleDisplay.innerHTML = `
+                            <div style="text-align: center;">
+                                <h4 style="color: #10b981;">✅ Código Válido</h4>
+                                <p>Tu rol será: <span class="tech-badge badge-${result.tipo_usuario}">${result.tipo_usuario}</span></p>
+                            </div>
+                        `;
+                    } else {
+                        roleDisplay.innerHTML = `
+                            <div style="text-align: center;">
+                                <h4 style="color: #ef4444;">❌ Código Inválido</h4>
+                                <p>${result.mensaje}</p>
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    roleDisplay.innerHTML = `
+                        <div style="text-align: center;">
+                            <h4 style="color: #f59e0b;">⚠️ Error de Conexión</h4>
+                            <p>No se pudo verificar el código</p>
+                        </div>
+                    `;
+                }
+            }
+        });
+        
+        // Manejar envío del formulario
+        document.getElementById('registroForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Verificar que las contraseñas coincidan
+            if (passwordInput.value !== confirmPasswordInput.value) {
+                alert('Las contraseñas no coinciden');
+                return;
+            }
+            
+            const formData = new FormData(this);
+            const messageDiv = document.getElementById('message');
+            
+            // Mostrar loading
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="tech-btn-icon">⏳</span> Registrando...';
+            submitBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/registro', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams(formData)
+                });
+                
+                const result = await response.text();
+                messageDiv.innerHTML = result;
+                
+                // Scroll to message
+                messageDiv.scrollIntoView({ behavior: 'smooth' });
+            } catch (error) {
+                messageDiv.innerHTML = `
+                    <div class="tech-message" style="padding: 1rem;">
+                        <div class="tech-message-icon">💥</div>
+                        <h3>Error de Conexión</h3>
+                        <p>No se pudo conectar con el servidor</p>
+                    </div>
+                `;
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
