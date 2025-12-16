@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administración - BioTech</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="navbar"></div>
+
+    <div class="tech-container">
+        <div class="tech-hero">
+            <h1><i class="fas fa-cogs"></i> Panel de Administración</h1>
+            <p>Gestión completa del sistema biomédico</p>
+        </div>
+
+        <div class="admin-panel">
+            <!-- Sidebar -->
+            <div class="admin-sidebar">
+                <h3><i class="fas fa-sliders-h"></i> Menú de Administración</h3>
+                <nav class="admin-nav">
+                    <a href="#usuarios" class="admin-nav-item active" onclick="showSection('usuarios')">
+                        <i class="fas fa-users"></i> Gestión de Usuarios
+                    </a>
+                    <a href="#catalogo" class="admin-nav-item" onclick="showSection('catalogo')">
+                        <i class="fas fa-book-medical"></i> Catálogo de Estudios
+                    </a>
+                    <a href="#codigos" class="admin-nav-item" onclick="showSection('codigos')">
+                        <i class="fas fa-key"></i> Códigos de Acceso
+                    </a>
+                    <a href="#estadisticas" class="admin-nav-item" onclick="showSection('estadisticas')">
+                        <i class="fas fa-chart-bar"></i> Estadísticas Avanzadas
+                    </a>
+                    <a href="#backup" class="admin-nav-item" onclick="showSection('backup')">
+                        <i class="fas fa-database"></i> Backup y Restauración
+                    </a>
+                    <a href="#configuracion" class="admin-nav-item" onclick="showSection('configuracion')">
+                        <i class="fas fa-wrench"></i> Configuración del Sistema
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Contenido Principal -->
+            <div class="admin-content">
+                <!-- Sección de Usuarios -->
+                <div id="section-usuarios" class="admin-section">
+                    <h2><i class="fas fa-users-cog"></i> Gestión de Usuarios</h2>
+                    
+                    <!-- Búsqueda y Filtros -->
+                    <div class="search-container mb-4">
+                        <input type="text" 
+                               id="searchUsers" 
+                               class="search-input" 
+                               placeholder="Buscar usuarios..."
+                               onkeyup="searchUsers(this.value)">
+                        <i class="fas fa-search search-icon"></i>
+                    </div>
+                    
+                    <div class="tech-btn-group mb-4">
+                        <button class="tech-btn tech-btn-primary" onclick="showUserForm()">
+                            <i class="fas fa-user-plus"></i> Nuevo Usuario
+                        </button>
+                        <button class="tech-btn tech-btn-accent" onclick="exportUsers()">
+                            <i class="fas fa-file-export"></i> Exportar Usuarios
+                        </button>
+                        <button class="tech-btn tech-btn-outline" onclick="generateUserReport()">
+                            <i class="fas fa-file-pdf"></i> Generar Reporte
+                        </button>
+                    </div>
+                    
+                    <!-- Tabla de Usuarios -->
+                    <div id="usersTableContainer" class="tech-table-container">
+                        <div class="loading-spinner"></div>
+                    </div>
+                </div>
+
+                <!-- Sección de Catálogo -->
+                <div id="section-catalogo" class="admin-section" style="display: none;">
+                    <h2><i class="fas fa-book-medical"></i> Catálogo de Estudios</h2>
+                    
+                    <!-- Formulario para agregar estudio -->
+                    <div class="tech-card mb-4">
+                        <h3><i class="fas fa-plus-circle"></i> Agregar Nuevo Estudio</h3>
+                        <form id="addStudyForm" class="tech-form">
+                            <div class="d-grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+                                <div class="tech-form-group">
+                                    <label class="tech-form-label">Nombre del Estudio</label>
+                                    <input type="text" class="tech-form-input" name="nombre_prueba" required>
+                                </div>
+                                <div class="tech-form-group">
+                                    <label class="tech-form-label">Categoría</label>
+                                    <select class="tech-form-select" name="categoria">
+                                        <option value="Bioquímica">Bioquímica</option>
+                                        <option value="Hematología">Hematología</option>
+                                        <option value="Inmunología">Inmunología</option>
+                                        <option value="Microbiología">Microbiología</option>
+                                        <option value="General">General</option>
+                                    </select>
+                                </div>
+                                <div class="tech-form-group">
+                                    <label class="tech-form-label">Precio ($)</label>
+                                    <input type="number" class="tech-form-input" name="precio" step="0.01" min="0" required>
+                                </div>
+                                <div class="tech-form-group">
+                                    <label class="tech-form-label">Unidad de Medida</label>
+                                    <input type="text" class="tech-form-input" name="unidad_medida">
+                                </div>
+                            </div>
+                            <div class="tech-form-group">
+                                <label class="tech-form-label">Descripción</label>
+                                <textarea class="tech-form-input tech-form-textarea" name="descripcion"></textarea>
+                            </div>
+                            <div class="tech-form-group">
+                                <label class="tech-form-label">Valores de Referencia</label>
+                                <textarea class="tech-form-input tech-form-textarea" name="valores_referencia"></textarea>
+                            </div>
+                            <div class="tech-actions">
+                                <button type="submit" class="tech-btn tech-btn-primary">
+                                    <i class="fas fa-save"></i> Guardar Estudio
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Lista de Estudios -->
+                    <div id="studiesList" class="tech-table-container">
+                        <!-- Se carga dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Sección de Códigos -->
+                <div id="section-codigos" class="admin-section" style="display: none;">
+                    <h2><i class="fas fa-key"></i> Gestión de Códigos de Acceso</h2>
+                    
+                    <!-- Generar nuevos códigos -->
+                    <div class="tech-card mb-4">
+                        <h3><i class="fas fa-key"></i> Generar Nuevos Códigos</h3>
+                        <form id="generateCodesForm" class="tech-form">
+                            <div class="d-grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                                <div class="tech-form-group">
+                                    <label class="tech-form-label">Cantidad</label>
+                                    <input type="number" class="tech-form-input" name="cantidad" min="1" max="100" value="5" required>
+                                </div>
+                                <div class="tech-form-group">
+                                    <label class="tech-form-label">Tipo de Usuario</label>
+                                    <select class="tech-form-select" name="tipo_usuario" required>
+                                        <option value="MEDICO">Médico</option>
+                                        <option value="PACIENTE">Paciente</option>
+                                        <option value="LABORATORISTA">Laboratorista</option>
+                                        <option value="INVESTIGADOR">Investigador</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="tech-actions">
+                                <button type="submit" class="tech-btn tech-btn-primary">
+                                    <i class="fas fa-key"></i> Generar Códigos
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Códigos Generados -->
+                    <div id="codesList" class="tech-table-container">
+                        <!-- Se carga dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Sección de Estadísticas -->
+                <div id="section-estadisticas" class="admin-section" style="display: none;">
+                    <h2><i class="fas fa-chart-bar"></i> Estadísticas Avanzadas</h2>
+                    
+                    <!-- Métricas Principales -->
+                    <div class="dashboard-grid mb-4">
+                        <div class="dashboard-card">
+                            <h3><i class="fas fa-chart-line"></i> Métricas Principales</h3>
+                            <div id="advancedMetrics" class="dashboard-stats">
+                                <!-- Se carga dinámicamente -->
+                            </div>
+                        </div>
+                        <div class="dashboard-card">
+                            <h3><i class="fas fa-users"></i> Distribución por Rol</h3>
+                            <div id="roleDistribution">
+                                <!-- Se carga dinámicamente -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Gráficos -->
+                    <div class="tech-card mb-4">
+                        <h3><i class="fas fa-chart-pie"></i> Estudios Más Solicitados</h3>
+                        <div id="popularStudiesChart">
+                            <!-- Gráfico de estudios populares -->
+                        </div>
+                    </div>
+                    
+                    <!-- Reporte Detallado -->
+                    <div class="tech-card">
+                        <h3><i class="fas fa-file-alt"></i> Reporte de Actividad</h3>
+                        <div id="activityReport" class="tech-table-container">
+                            <!-- Se carga dinámicamente -->
+                        </div>
+                        <div class="tech-actions mt-3">
+                            <button class="tech-btn tech-btn-accent" onclick="generateDetailedReport()">
+                                <i class="fas fa-file-pdf"></i> Generar Reporte PDF
+                            </button>
+                            <button class="tech-btn tech-btn-outline" onclick="exportActivityData()">
+                                <i class="fas fa-file-excel"></i> Exportar a Excel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección de Backup -->
+                <div id="section-backup" class="admin-section" style="display: none;">
+                    <h2><i class="fas fa-database"></i> Backup y Restauración</h2>
+                    
+                    <div class="tech-card-grid">
+                        <div class="tech-card">
+                            <h3><i class="fas fa-download"></i> Backup de Base de Datos</h3>
+                            <p>Genera una copia de seguridad completa de la base de datos</p>
+                            <div class="tech-actions mt-3">
+                                <button class="tech-btn tech-btn-primary" onclick="generateBackup()">
+                                    <i class="fas fa-save"></i> Generar Backup
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="tech-card">
+                            <h3><i class="fas fa-upload"></i> Restaurar Base de Datos</h3>
+                            <p>Restaura la base de datos desde un archivo de backup</p>
+                            <div class="tech-actions mt-3">
+                                <input type="file" id="backupFile" accept=".sql,.backup" style="display: none;">
+                                <button class="tech-btn tech-btn-accent" onclick="document.getElementById('backupFile').click()">
+                                    <i class="fas fa-upload"></i> Seleccionar Backup
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Historial de Backups -->
+                    <div class="tech-card mt-4">
+                        <h3><i class="fas fa-history"></i> Historial de Backups</h3>
+                        <div id="backupHistory" class="tech-table-container">
+                            <!-- Se carga dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección de Configuración -->
+                <div id="section-configuracion" class="admin-section" style="display: none;">
+                    <h2><i class="fas fa-wrench"></i> Configuración del Sistema</h2>
+                    
+                    <div class="tech-card">
+                        <h3><i class="fas fa-cog"></i> Configuración General</h3>
+                        <form id="systemConfigForm" class="tech-form">
+                            <div class="d-grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+                                <div class="tech-form-group">
+                                    <label class="tech-form-label">Nombre del Sistema</label>
+                                    <input type="text" class="tech-form-input" name="system_name" value="BioTech Sistema Biomédico">
+                                </div>
+                                <div class="tech-form-group">
+                                    <label class="tech-form-label">Tiempo de Sesión (minutos)</label>
+                                    <input type="number" class="tech-form-input" name="session_timeout" value="30" min="5" max="120">
+                                </div>
+                                <div class="tech-form-group">
+                                    <label class="tech-form-label">Tamaño máximo de archivo (MB)</label>
+                                    <input type="number" class="tech-form-input" name="max_file_size" value="10" min="1" max="100">
+                                </div>
+                            </div>
+                            
+                            <h4 class="mt-4"><i class="fas fa-bell"></i> Notificaciones</h4>
+                            <div class="d-grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                                <div class="tech-form-group">
+                                    <label class="tech-form-checkbox">
+                                        <input type="checkbox" name="email_notifications" checked>
+                                        <span>Notificaciones por Email</span>
+                                    </label>
+                                </div>
+                                <div class="tech-form-group">
+                                    <label class="tech-form-checkbox">
+                                        <input type="checkbox" name="new_order_notifications" checked>
+                                        <span>Nuevas Órdenes</span>
+                                    </label>
+                                </div>
+                                <div class="tech-form-group">
+                                    <label class="tech-form-checkbox">
+                                        <input type="checkbox" name="results_notifications" checked>
+                                        <span>Resultados Listos</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="tech-actions mt-4">
+                                <button type="submit" class="tech-btn tech-btn-primary">
+                                    <i class="fas fa-save"></i> Guardar Configuración
+                                </button>
+                                <button type="button" class="tech-btn tech-btn-outline" onclick="resetSystemConfig()">
+                                    <i class="fas fa-undo"></i> Restaurar Valores
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Nuevo Usuario -->
+    <div id="userModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeUserModal()">&times;</span>
+            <h3><i class="fas fa-user-plus"></i> Nuevo Usuario</h3>
+            <form id="userForm" class="tech-form">
+                <div class="tech-form-group">
+                    <label class="tech-form-label">Nombre de Usuario</label>
+                    <input type="text" class="tech-form-input" name="nombre_usuario" required>
+                </div>
+                <div class="tech-form-group">
+                    <label class="tech-form-label">Contraseña</label>
+                    <input type="password" class="tech-form-input" name="password" required>
+                </div>
+                <div class="tech-form-group">
+                    <label class="tech-form-label">Tipo de Usuario</label>
+                    <select class="tech-form-select" name="tipo_usuario" required>
+                        <option value="">Seleccionar...</option>
+                        <option value="ADMIN">Administrador</option>
+                        <option value="MEDICO">Médico</option>
+                        <option value="PACIENTE">Paciente</option>
+                        <option value="LABORATORISTA">Laboratorista</option>
+                        <option value="INVESTIGADOR">Investigador</option>
+                    </select>
+                </div>
+                <div class="tech-actions">
+                    <button type="submit" class="tech-btn tech-btn-primary">Guardar Usuario</button>
+                    <button type="button" class="tech-btn tech-btn-outline" onclick="closeUserModal()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Cargar navbar
+        async function loadNavbar() {
+            try {
+                const response = await fetch('/navbar.html');
+                document.getElementById('navbar').innerHTML = await response.text();
+            } catch (error) {
+                console.error('Error cargando navbar:', error);
+            }
+        }
+        
+        // Navegación entre secciones
+        function showSection(sectionId) {
+            // Ocultar todas las secciones
+            document.querySelectorAll('.admin-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Mostrar la sección seleccionada
+            document.getElementById(`section-${sectionId}`).style.display = 'block';
+            
+            // Actualizar menú activo
+            document.querySelectorAll('.admin-nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Cargar datos de la sección
+            loadSectionData(sectionId);
+        }
+        
+        async function loadSectionData(sectionId) {
+            switch(sectionId) {
+                case 'usuarios':
+                    await loadUsers();
+                    break;
+                case 'catalogo':
+                    await loadStudies();
+                    break;
+                case 'codigos':
+                    await loadCodes();
+                    break;
+                case 'estadisticas':
+                    await loadStatistics();
+                    break;
+                case 'backup':
+                    await loadBackupHistory();
+                    break;
+            }
+        }
+        
+        // Gestión de Usuarios
+        async function loadUsers() {
+            try {
+                const response = await fetch('/api/usuarios', {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const users = await response.json();
+                    displayUsersTable(users);
+                }
+            } catch (error) {
+                console.error('Error cargando usuarios:', error);
+            }
+        }
+        
+        function displayUsersTable(users) {
+            let tableHTML = `
+                <table class="tech-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Usuario</th>
+                            <th>Rol</th>
+                            <th>Fecha Registro</th>
+                            <th>Estado</th>
+                            <th>Órdenes</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            users.forEach(user => {
+                tableHTML += `
+                    <tr>
+                        <td>${user.id}</td>
+                        <td><strong>${user.nombre_usuario}</strong></td>
+                        <td><span class="tech-badge badge-${user.tipo_usuario}">${user.tipo_usuario}</span></td>
+                        <td>${new Date(user.fecha_registro).toLocaleDateString()}</td>
+                        <td>
+                            <span class="tech-status ${user.activo ? 'status-validado' : 'status-cancelado'}">
+                                ${user.activo ? 'Activo' : 'Inactivo'}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="tech-badge">P: ${user.ordenes_como_paciente || 0}</span>
+                            <span class="tech-badge">M: ${user.ordenes_como_medico || 0}</span>
+                        </td>
+                        <td>
+                            <div class="tech-btn-group">
+                                <button class="tech-btn tech-btn-outline" style="padding: 0.25rem 0.5rem;" 
+                                        onclick="editUser(${user.id})">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="tech-btn tech-btn-danger" style="padding: 0.25rem 0.5rem;"
+                                        onclick="deleteUser(${user.id})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += `
+                    </tbody>
+                </table>
+            `;
+            
+            document.getElementById('usersTableContainer').innerHTML = tableHTML;
+        }
+        
+        async function searchUsers(query) {
+            if (query.length < 2) {
+                await loadUsers();
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/busqueda-avanzada?termino=${encodeURIComponent(query)}&tipo=usuarios`, {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    displayUsersTable(data.resultados || []);
+                }
+            } catch (error) {
+                console.error('Error buscando usuarios:', error);
+            }
+        }
+        
+        function showUserForm() {
+            document.getElementById('userModal').style.display = 'block';
+        }
+        
+        function closeUserModal() {
+            document.getElementById('userModal').style.display = 'none';
+            document.getElementById('userForm').reset();
+        }
+        
+        document.getElementById('userForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const userData = Object.fromEntries(formData);
+            
+            try {
+                const response = await fetch('/api/usuarios', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(userData)
+                });
+                
+                if (response.ok) {
+                    alert('Usuario creado exitosamente');
+                    closeUserModal();
+                    await loadUsers();
+                } else {
+                    const error = await response.json();
+                    alert(error.error || 'Error al crear usuario');
+                }
+            } catch (error) {
+                console.error('Error creando usuario:', error);
+                alert('Error al crear usuario');
+            }
+        });
+        
+        // Gestión de Estudios
+        async function loadStudies() {
+            try {
+                const response = await fetch('/api/catalogo-estudios', {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const studies = await response.json();
+                    displayStudiesList(studies);
+                }
+            } catch (error) {
+                console.error('Error cargando estudios:', error);
+            }
+        }
+        
+        function displayStudiesList(studies) {
+            let listHTML = `
+                <table class="tech-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Categoría</th>
+                            <th>Precio</th>
+                            <th>Unidad</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            studies.forEach(study => {
+                listHTML += `
+                    <tr>
+                        <td>${study.id_catalogo_prueba}</td>
+                        <td><strong>${study.nombre_prueba}</strong></td>
+                        <td><span class="tech-badge">${study.categoria || 'General'}</span></td>
+                        <td>$${study.precio}</td>
+                        <td>${study.unidad_medida || 'N/A'}</td>
+                        <td>
+                            <span class="tech-status ${study.activo ? 'status-validado' : 'status-cancelado'}">
+                                ${study.activo ? 'Activo' : 'Inactivo'}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="tech-btn tech-btn-outline" style="padding: 0.25rem 0.5rem;"
+                                    onclick="editStudy(${study.id_catalogo_prueba})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            listHTML += `
+                    </tbody>
+                </table>
+            `;
+            
+            document.getElementById('studiesList').innerHTML = listHTML;
+        }
+        
+        // Gestión de Códigos
+        async function loadCodes() {
+            try {
+                const response = await fetch('/api/codigos', {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const codes = await response.json();
+                    displayCodesList(codes);
+                }
+            } catch (error) {
+                console.error('Error cargando códigos:', error);
+            }
+        }
+        
+        function displayCodesList(codes) {
+            let listHTML = `
+                <table class="tech-table">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Tipo de Usuario</th>
+                            <th>Fecha Creación</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            codes.forEach(code => {
+                listHTML += `
+                    <tr>
+                        <td><code>${code.codigo}</code></td>
+                        <td><span class="tech-badge badge-${code.tipo_usuario}">${code.tipo_usuario}</span></td>
+                        <td>${new Date(code.fecha_creacion).toLocaleDateString()}</td>
+                        <td>
+                            <span class="tech-status ${code.usado ? 'status-cancelado' : 'status-validado'}">
+                                ${code.usado ? 'Usado' : 'Disponible'}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            listHTML += `
+                    </tbody>
+                </table>
+            `;
+            
+            document.getElementById('codesList').innerHTML = listHTML;
+        }
+        
+        // Estadísticas
+        async function loadStatistics() {
+            try {
+                const response = await fetch('/api/admin/estadisticas-completas', {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const stats = await response.json();
+                    displayAdvancedStatistics(stats);
+                }
+            } catch (error) {
+                console.error('Error cargando estadísticas:', error);
+            }
+        }
+        
+        function displayAdvancedStatistics(stats) {
+            // Métricas principales
+            const metrics = stats.estadisticas_generales;
+            document.getElementById('advancedMetrics').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${metrics.total_usuarios || 0}</div>
+                    <div class="stat-label">Usuarios</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${metrics.total_ordenes || 0}</div>
+                    <div class="stat-label">Órdenes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">$${metrics.ingresos_totales || 0}</div>
+                    <div class="stat-label">Ingresos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${metrics.ordenes_completadas || 0}</div>
+                    <div class="stat-label">Completadas</div>
+                </div>
+            `;
+            
+            // Distribución por rol
+            let roleDistributionHTML = '<div class="dashboard-stats">';
+            stats.usuarios_por_tipo.forEach(role => {
+                roleDistributionHTML += `
+                    <div class="stat-card">
+                        <div class="stat-value">${role.cantidad}</div>
+                        <div class="stat-label">${role.tipo_usuario}</div>
+                        <small>${role.porcentaje}%</small>
+                    </div>
+                `;
+            });
+            roleDistributionHTML += '</div>';
+            document.getElementById('roleDistribution').innerHTML = roleDistributionHTML;
+            
+            // Estudios más solicitados
+            let studiesHTML = '<table class="tech-table"><thead><tr><th>Estudio</th><th>Solicitudes</th><th>Ingresos</th><th>Precio Promedio</th></tr></thead><tbody>';
+            stats.estudios_mas_solicitados.forEach(study => {
+                studiesHTML += `
+                    <tr>
+                        <td>${study.nombre_prueba}</td>
+                        <td>${study.veces_solicitado}</td>
+                        <td>$${study.ingresos_generados}</td>
+                        <td>$${study.precio_promedio}</td>
+                    </tr>
+                `;
+            });
+            studiesHTML += '</tbody></table>';
+            document.getElementById('popularStudiesChart').innerHTML = studiesHTML;
+        }
+        
+        // Backup
+        async function loadBackupHistory() {
+            // Implementar lógica de backup
+            document.getElementById('backupHistory').innerHTML = `
+                <p class="tech-text-center p-4">Función de backup en desarrollo</p>
+            `;
+        }
+        
+        // Cargar todo al iniciar
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadNavbar();
+            await loadUsers(); // Cargar usuarios por defecto
+        });
+    </script>
+
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+        }
+        
+        .modal-content {
+            background-color: var(--tech-card-bg);
+            margin: 5% auto;
+            padding: 2rem;
+            border: 1px solid var(--tech-border);
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+        
+        .close-modal {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--tech-text-secondary);
+        }
+        
+        .close-modal:hover {
+            color: var(--tech-danger);
+        }
+        
+        .tech-form-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+        
+        .tech-form-checkbox input[type="checkbox"] {
+            width: auto;
+        }
+    </style>
+</body>
+</html>
